@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>亂荷飄零開放式數據庫</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --paper-color: #f5f0e5;
+            --ink-color: #3d2f24;
+        }
+
+        body {
+            background: var(--paper-color);
+            color: var(--ink-color);
+            font-family: 'Noto Serif SC', serif;
+        }
+
+        .nav-title {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 2.5rem;
+            border-bottom: 3px double var(--ink-color);
+        }
+
+        .resource-card {
+            background: rgba(255,255,255,0.8);
+            border: 1px solid #d4c8b8;
+            transition: transform 0.2s;
+        }
+
+        .resource-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .search-box {
+            background: url('data:image/svg+xml;utf8,<svg...>') no-repeat right 1rem center/1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <!-- 标题 -->
+        <h1 class="nav-title text-center mb-5">亂荷飄零開放式數據庫</h1>
+        
+        <!-- 搜索框 -->
+        <div class="row justify-content-center mb-4">
+            <div class="col-md-8">
+                <input type="search" id="searchInput" class="form-control search-box" 
+                       placeholder="输入古籍名/关键词...">
+            </div>
+        </div>
+
+        <!-- 资源展示区 -->
+        <div id="resourceContainer" class="row g-4"></div>
+    </div>
+
+    <!-- 依赖库 -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/fuse.js/6.6.2/fuse.min.js"></script>
+    <script>
+        // 示例数据（后续可扩展为独立JSON文件）
+const resources = [
+    {
+        title: "中国哲学书电子化计划",
+        url: "https://ctext.org/zhs",
+        category: "全文检索",
+        desc: "OCR识别古籍，支持多版本对照",
+        tags: ["OCR", "高校资源", "缺字警告"]
+    },
+    {
+        title: "识典古籍",
+        url: "https://www.shidianguji.com/",
+        category: "全文检索",
+        desc: "文图对照，大厂出品",
+        tags: ["稳定访问"]
+    },
+    {
+        title: "中华文库",
+        url: "https://www.zhonghuashu.com/",
+        category: "全文检索",
+        desc: "志愿者校对的古籍文本",
+        tags: ["公益项目"]
+    }, // ✅ 补充分隔逗号
+    {
+        title: "古籍在线古籍数据库",
+        url: "http://gu.gujionline.com/wenxinge/home/doc/index.do",
+        category: "全文检索",
+        desc: "提供古籍文献在线检索服务",
+        tags: ["专业数据库"]
+    },
+    {
+        title: "中国古籍总目",
+        url: "https://bibliographical.guji.cn/",
+        category: "目录检索",
+        desc: "权威古籍目录查询系统",
+        tags: ["国家项目"]
+    },
+    {
+        title: "全球汉籍影像开放集成系统",
+        url: "https://guji.wenxianxue.cn/index",
+        category: "影像检索",
+        desc: "需使用繁体字检索的开放古籍影像系统",
+        tags: ["繁体支持"]
+    },
+    {
+        title: "重庆师范大学图书馆",
+        url: "https://lib.cqnu.edu.cn/",
+        category: "数据库",
+        desc: "包含多个特色古籍数据库",
+        tags: ["高校资源 需校园网进入"]
+    },
+    {
+        title: "浙江图书馆古籍库",
+        url: "http://zjisa.zjlib.cn/",
+        category: "数据库",
+        desc: "浙江地区古籍文献数字化成果",
+        tags: ["地方文献"]
+    },
+    {
+        title: "山东省图书馆",
+        url: "http://www.sdlib.com/channels/ch00094/",
+        category: "数据库",
+        desc: "山东区古籍文献数字化成果",
+        tags: ["数据库丰富"]
+    },
+    {
+        title: "山东省图书馆",
+        url: "http://www.sdlib.com/channels/ch00094/",
+        category: "数据库",
+        desc: "山东区古籍文献数字化成果",
+        tags: ["数据库丰富"]
+    },   
+    {
+        title: "广西壮族自治区图书馆",
+        url: "https://dlg.res.gxlib.org.cn/",
+        category: "数据库",
+        desc: "广西古籍文献数字化成果",
+        tags: ["注册简单"]
+    },   
+    {
+        title: "台湾汉学数位典藏",
+        url: "https://sinology.ascdc.sinica.edu.tw/",
+        category: "数据库",
+        desc: "台湾地区古籍数字化资源导览",
+        tags: ["需科学上网"]
+    },
+    {
+        title: "Literary Print Culture",
+        url: "https://www.literaryprintculture.amdigital.co.uk/",
+        category: "外文档案",
+        desc: "16-20世纪印刷出版史档案数据库",
+        tags: ["英国出版史"]
+    },
+    {
+        title: "澳大利亚数据档案",
+        url: "https://ada.edu.au/",
+        category: "外文档案",
+        desc: "需注册访问的学术数据档案库",
+        tags: ["国际资源"]    
+    } ,
+    {
+        title: "社科院免费资源导航",
+        url: "http://www.lib.cass.org.cn/zy/dzzy/mfxszy/",
+        category: "资源整合",
+        desc: "数据丰富 可链接其他资源",
+        tags: ["资源整合"]// ✅ 最后一个元素不需要逗号
+    }
+]; // ✅ 正确闭合数组        // 模糊搜索配置
+        const fuse = new Fuse(resources, {
+            keys: ['title', 'desc', 'tags'],
+            threshold: 0.3,
+            ignoreLocation: true
+        });
+
+        // 渲染资源卡片
+        function renderResources(items) {
+            const container = document.getElementById('resourceContainer');
+            container.innerHTML = items.map(item => `
+                <div class="col-md-6 col-lg-4">
+                    <div class="resource-card p-4 rounded-3">
+                        <h5 class="mb-3">
+                            <a href="${item.url}" target="_blank" class="text-decoration-none">${item.title}</a>
+                            ${item.tags.map(tag => `<span class="badge bg-secondary ms-2">${tag}</span>`).join('')}
+                        </h5>
+                        <p class="text-muted">${item.desc}</p>
+                        <small class="text-muted">分类：${item.category}</small>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 初始渲染
+        renderResources(resources);
+
+        // 实时搜索
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            if (e.target.value.trim()) {
+                const results = fuse.search(e.target.value);
+                renderResources(results.map(r => r.item));
+            } else {
+                renderResources(resources);
+            }
+        });
+    </script>
+</body>
+</html>
