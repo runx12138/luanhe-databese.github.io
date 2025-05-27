@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>亂荷飄零古籍数据库</title>
+    
+    <!-- 样式依赖 -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --paper-color: #f9f6f0;
+            --ink-color: #382f2a;
+            --accent-color: #8c6840;
+        }
+
+        body {
+            background: var(--paper-color);
+            color: var(--ink-color);
+            font-family: 'Noto Serif SC', serif;
+            min-height: 100vh;
+            opacity: 0;
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .nav-title {
+        font-family: 'Noto Serif SC', serif;
+        font-weight: 700;
+        }
+
+        .nav-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent 0%, var(--accent-color) 50%, transparent 100%);
+        }
+
+        .resource-card {
+            background: rgba(255,255,255,0.9);
+            border: 1px solid #e5ddd3;
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: cardEnter 0.6s ease-out forwards;
+        }
+
+        @keyframes cardEnter {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .resource-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+            border-color: var(--accent-color);
+        }
+
+        .category-btn {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+            border: 2px solid var(--ink-color);
+            border-radius: 50px;
+            padding: 8px 24px;
+        }
+
+        .category-btn.active {
+            background: var(--ink-color);
+            color: var(--paper-color);
+        }
+
+        .category-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(60,45,35,0.1);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s;
+        }
+
+        .category-btn:hover::before {
+            width: 120%;
+            height: 120%;
+        }
+
+        .tag-badge {
+            background: rgba(140,104,64,0.15);
+            color: var(--accent-color);
+            font-size: 0.8em;
+            padding: 4px 10px;
+            border-radius: 4px;
+            transition: transform 0.2s;
+        }
+
+        .tag-badge:hover {
+            transform: scale(1.05);
+        }
+
+        .search-box {
+            background: var(--paper-color);
+            border: 2px solid var(--ink-color);
+            border-radius: 50px;
+            padding: 12px 24px;
+            transition: all 0.3s;
+        }
+
+        .search-box:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(140,104,64,0.2);
+        }
+
+        .link-underline {
+            position: relative;
+            text-decoration: none !important;
+        }
+
+        .link-underline::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--accent-color);
+            transition: width 0.3s;
+        }
+
+        .link-underline:hover::after {
+            width: 100%;
+        }
+        /* 公告栏*/
+.alert {
+    background-color: rgba(140, 104, 64, 0.1) !important;
+    border-radius: 12px;
+    animation: fadeIn 0.8s ease-out forwards;
+    transition: all 0.3s;
+}
+
+.alert:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <!-- 标题 -->
+        <h1 class="nav-title text-center">亂荷飄零開放式數據庫</h1>
+     <!-- 新增公告栏 -->
+<div class="row justify-content-center mb-4">
+    <div class="col-md-8">
+        <div class="alert alert-info bg-transparent border-accent text-center py-3" 
+             role="alert"
+             style="border: 1px solid var(--accent-color); color: var(--ink-color);">
+            <p class="mb-0 small">⚠️ 这是一个常用数据库资源整合网站,<br>力求服务广大文史哲工作者。<br>外文档案现在已可搜索和使用；通用数据库新增大量中世纪第一手材料</p>
+        </div>
+        <div class="col-md-10"></div>
+            <div class="alert alert-info bg-transparent border-accent text-center py-3" 
+                 role="alert"
+                 style="border: 1px solid var(--accent-color); color: var(--ink-color);">
+                <p class="mb-0 small">于民小通知<br>老聂的作业所需要家谱可在“中华寻根网”，“中国族谱库”上进行查找</p>
+           
+    </div>
+</div>   
+        <!-- 搜索框 -->
+        <div class="row justify-content-center mb-5">
+            <div class="col-md-8">
+                <input type="search" id="searchInput" class="form-control search-box" placeholder="已可进行数据库搜索">
+            </div>
+        </div>
+
+        <!-- 分类导航 -->
+        <div class="row justify-content-center mb-5">
+            <div class="col-md-10">
+                <div class="d-flex flex-wrap gap-3 justify-content-center">
+                    <button class="btn category-btn active" data-category="all">全部</button>
+                    <button class="btn category-btn" data-category="外文档案">外文档案</button>
+                    <button class="btn category-btn" data-category="外文数据库">外文通用资料收集</button>
+                    <button class="btn category-btn" data-category="专用古籍阅读">民间古籍閱讀</button>
+                    <button class="btn category-btn" data-category="数据库集合">图书馆數據庫集合</button>
+                    <button class="btn category-btn" data-category="海外藏珍贵汉籍">海外藏珍贵汉籍</button>
+                    <button class="btn category-btn" data-category="历史地理学数据">历史地理常见数据库</button>
+                </div>
+            </div>
+        </div>
+
+<!-- 资源展示区 -->
+<div class="container py-5">
+    <div id="resourceContainer" class="row g-4"></div>
+</div>
+
+<script>
+// 静态资源数据
+const resources = [
+
+// 专用古籍阅读
+    {
+        title: "中国哲学书电子化计划",
+        url: "https://ctext.org/zhs",
+        category: "专用古籍阅读",
+        desc: "OCR识别古籍，支持多版本对照",
+        tags: ["OCR", "高校资源", "缺字警告"]
+    },
+    {
+        title: "古籍在线古籍数据库",
+        url: "http://gu.gujionline.com/wenxinge/home/doc/index.do",
+        category: "专用古籍阅读",
+        desc: "OCR识别古籍，支持多版本对照",
+        tags: ["四库便利", "全文检索", "分部类"]
+    },
+    {
+        title: "识典古籍",
+        url: "https://www.shidianguji.com/",
+        category: "专用古籍阅读",
+        desc: "文图对照，大厂出品",
+        tags: ["稳定访问"]
+    },
+    {
+        title: "中华文库",
+        url: "https://www.zhonghuashu.com/",
+        category: "专用古籍阅读",
+        desc: "志愿者校对的古籍文本",
+        tags: ["公益项目"]
+    },
+    {
+        title: "国学复兴网",
+        url: "https://www.gxfxwh.com/forum.php",
+        category: "专用古籍阅读",
+        desc: "复兴论坛",
+        tags: ["公益项目"]
+    },
+    {
+        title: "文心阁古籍数据库",
+        url: "https://zj.gujionline.com/",
+        category: "专用古籍阅读",
+        desc: "提供古籍文献在线检索服务",
+        tags: ["专业数据库"]
+    },
+    {
+        title: "国学迷",
+        url: "https://www.guoxuemi.com/shumu/",
+        category: "专用古籍阅读",
+        desc: "古籍书目查询",
+        tags: ["专业数据库"]
+    },
+    {
+        title: "漢川草廬",
+        url: "http://www.xn--5rtnx620bw5s.tw/",
+        category: "专用古籍阅读",
+        desc: "古籍阅读平台",
+        tags: ["阅读库"]
+    },    
+    {
+        title: "全球汉籍影像开放集成系统",
+        url: "https://guji.wenxianxue.cn/",
+        category: "专用古籍阅读",
+        desc: "需使用繁体字检索的开放古籍影像系统",
+        tags: ["繁体支持"]
+    },
+    {
+        title: "中华古籍智能化服务平台",
+        url: "https://guji.nlc.cn/",
+        category: "通用数据库",
+        desc: "权威古籍目录查询系统",
+        tags: ["国家项目"]
+    },
+    //外文档案
+{
+        "title": "欧洲档案门户 (Archives Portal Europe)",
+        "url": "https://www.archivesportaleurope.net/",
+        "category": "外文档案", // 修改于此
+        "desc": "提供对欧洲各地档案机构中保存的档案材料的在线访问入口，资源非常丰富，支持多语言检索。",
+        "tags": ["欧洲", "档案门户", "多国档案", "数字化", "免费访问"]
+    },
+    {
+        "title": "美国国家档案和记录管理局 (NARA)",
+        "url": "https://www.archives.gov/research/catalog",
+        "category": "外文档案", // 修改于此
+        "desc": "美国联邦政府官方档案库，提供大量数字化历史文献、照片、音视频资料的在线目录和访问。",
+        "tags": ["美国", "国家档案", "历史文献", "数字化", "免费访问"]
+    },
+    {
+        "title": "英国国家档案馆 (The National Archives)",
+        "url": "https://discovery.nationalarchives.gov.uk/",
+        "category": "外文档案", // 修改于此
+        "desc": "英国政府官方档案馆，其在线平台 Discovery 提供对数百万份档案记录的检索，许多已数字化并可免费查看。",
+        "tags": ["英国", "国家档案", "历史记录", "数字化", "免费访问"]
+    },
+    {
+        "title": "法国国家档案馆 (Archives Nationales)",
+        "url": "https://www.archives-nationales.culture.gouv.fr/accéder-aux-ressources/salle-des-inventaires-virtuelle",
+        "category": "外文档案", // 修改于此
+        "desc": "法国国家级档案保管机构，其“虚拟清单室”提供在线档案目录检索及部分数字化档案的查阅。",
+        "tags": ["法国", "国家档案", "数字化", "在线目录", "免费访问"]
+    },
+    {
+        "title": "德国联邦档案馆 (Bundesarchiv)",
+        "url": "https://www.bundesarchiv.de/DE/Navigation/Benutzen/Hinweise-zur-Benutzung/Recherchieren/ARGUS/argus.html",
+        "category": "外文档案", // 修改于此
+        "desc": "德国联邦级档案馆，提供在线档案数据库 (ARGUS) 的检索，部分档案已数字化可在线查阅。",
+        "tags": ["德国", "联邦档案", "数字化", "在线检索", "免费访问"]
+    },
+    {
+        "title": "俄罗斯国家电子图书馆 (Национальная электронная библиотека - НЭБ)",
+        "url": "https://rusneb.ru/",
+        "category": "外文档案", // 修改于此
+        "desc": "俄罗斯国家级电子图书馆项目，整合了俄罗斯各地图书馆、档案馆的数字化资源，包括部分历史文献和书籍。界面主要为俄语。",
+        "tags": ["俄罗斯", "数字图书馆", "历史文献", "俄语资源", "免费访问"]
+    },
+    {
+        "title": "美国数字公共图书馆 (Digital Public Library of America - DPLA)",
+        "url": "https://dp.la/",
+        "category": "外文档案", // 修改于此
+        "desc": "汇集了美国各地图书馆、档案馆和博物馆的数字化资源，内容涵盖历史文献、照片、艺术品等，提供统一检索入口。",
+        "tags": ["美国", "数字图书馆", "档案聚合", "历史文献", "免费访问"]
+    },
+
+// --- 外文档案：外国历史报纸入口 ---
+    {
+        "title": "美国历史报纸 (Chronicling America - Library of Congress)",
+        "url": "https://chroniclingamerica.loc.gov/",
+        "category": "外文档案", // 修改于此
+        "desc": "由美国国会图书馆提供的美国历史报纸数据库，可免费阅览1777年至1963年间出版的报纸。",
+        "tags": ["美国", "历史报纸", "国会图书馆", "免费阅览", "全文检索"]
+    },
+    {
+        "title": "Europeana Newspapers (欧洲报纸)",
+        "url": "https://www.europeana.eu/en/search?query=europeana_collectionName%3A%289200356%2A%29", // 此链接指向Europeana中报纸的集合
+        "category": "外文档案", // 修改于此
+        "desc": "汇集了欧洲多国图书馆提供的历史报纸资源，可通过Europeana平台进行检索和阅览。",
+        "tags": ["欧洲", "历史报纸", "多国资源", "数字化", "免费阅览"]
+    },
+    {
+        "title": "Gallica 法国国家图书馆数字资源库 (报纸部分)",
+        "url": "https://gallica.bnf.fr/html/presse-et-revues/presse-et-revues",
+        "category": "外文档案", // 修改于此
+        "desc": "法国国家图书馆的数字平台，提供大量法国历史报纸和期刊的免费在线阅览。",
+        "tags": ["法国", "历史报纸", "期刊", "国家图书馆", "免费阅览"]
+    },
+    {
+        "title": "奥地利历史报纸在线 (ANNO - Österreichische Nationalbibliothek)",
+        "url": "https://anno.onb.ac.at/",
+        "category": "外文档案", // 修改于此
+        "desc": "奥地利国家图书馆提供的历史报纸数据库，可免费阅览奥地利及其他欧洲地区的历史报纸。",
+        "tags": ["奥地利", "历史报纸", "国家图书馆", "中欧", "免费阅览"]
+    },
+    {
+        "title": "威尔士历史报纸在线 (Welsh Newspapers Online - National Library of Wales)",
+        "url": "https://newspapers.library.wales/",
+        "category": "外文档案", // 修改于此
+        "desc": "威尔士国家图书馆提供的免费历史报纸档案，包含1919年以前的威尔士报纸。",
+        "tags": ["英国", "威尔士", "历史报纸", "地方文献", "免费阅览"]
+    },
+    // 外文数据库
+    {
+        title: "Literary Print Culture",
+        url: "https://www.literaryprintculture.amdigital.co.uk/",
+        category: "外文数据库",
+        desc: "16-20世纪印刷出版史档案数据库",
+        tags: ["英国出版史"]
+    },
+    {
+        title: "澳大利亚数据档案",
+        url: "https://ada.edu.au/",
+        category: "外文数据库",
+        desc: "需注册访问的学术数据档案库",
+        tags: ["国际资源"]    
+    },
+    {
+        title: "安娜的档案",
+        url: "https://yue.annas-archive.org/",
+        category: "外文数据库",
+        desc: "下载速度较慢的影子图书馆",
+        tags: ["国际资源","资源整合","下载速度慢"]    
+    },
+    {
+        title: "z-library",
+        url: "z-lib.su",
+        category: "外文数据库",
+        desc: "经常进不去",
+        tags: ["国际资源"]    
+    },
+    {
+        title: "sci-hub",
+        url: "https://www.sci-hub.st/",
+        category: "外文数据库",
+        desc: "doi下载国际论文",
+        tags: ["国际资源"]    
+    },
+        {
+        "title": "中世纪原始文献集 (Internet Medieval Sourcebook)",
+        "url": "https://sourcebooks.fordham.edu/medieval/medievalsources.asp",
+        "category": "外文数据库",
+        "desc": "福特汉姆大学提供的中世纪原始文献集，包含大量翻译成英文的文本，涵盖法律、宗教、文学等多个方面。",
+        "tags": ["中世纪", "原始文献", "史料", "福特汉姆大学", "英文翻译", "免费"]
+    },
+    {
+        "title": "数字手稿室 (Digital Scriptorium)",
+        "url": "https://digital-scriptorium.org/",
+        "category": "外文数据库",
+        "desc": "一个合作项目，提供中世纪和文艺复兴时期手稿的图像数据库，汇集了美国多个图书馆的藏品。",
+        "tags": ["中世纪手稿", "文艺复兴手稿", "图像数据库", "合作项目", "美国馆藏", "免费"]
+    },
+    {
+        "title": "德国中世纪手稿门户 (Manuscripta Mediaevalia)",
+        "url": "http://www.manuscripta-mediaevalia.de/",
+        "category": "外文数据库",
+        "desc": "德国中世纪手稿门户网站，提供对德国及部分其他欧洲国家图书馆所藏中世纪手稿的目录信息和部分数字化副本的访问。",
+        "tags": ["中世纪手稿", "德国", "欧洲手稿", "目录", "数字化", "免费"]
+    },
+    {
+        "title": "帕克图书馆在线 (Parker Library on the Web)",
+        "url": "https://parker.stanford.edu/parker/",
+        "category": "外文数据库",
+        "desc": "剑桥大学基督圣体学院帕克图书馆藏中世纪手稿的数字版本，由斯坦福大学提供技术支持，包含大量珍贵手稿图像。",
+        "tags": ["中世纪手稿", "帕克图书馆", "剑桥大学", "斯坦福大学", "英国手稿", "免费"]
+    },
+    {
+        "title": "瑞士虚拟手稿图书馆 (e-codices)",
+        "url": "https://www.e-codices.unifr.ch/en/",
+        "category": "外文数据库",
+        "desc": "瑞士虚拟手稿图书馆，提供对瑞士各图书馆收藏的中世纪和部分早期现代手稿的免费数字访问。",
+        "tags": ["中世纪手稿", "瑞士", "手稿数字化", "虚拟图书馆", "免费"]
+    },
+    {
+        "title": "莱顿大学沃西乌斯拉丁文手稿在线 (Codices Vossiani Latini Online)",
+        "url": "https://digitalcollections.universiteitleiden.nl/collections/codices-vossiani-latini-online",
+        "category": "外文数据库",
+        "desc": "荷兰莱顿大学图书馆藏沃西乌斯拉丁文手稿的在线数字版，包含大量中世纪时期的拉丁文抄本。",
+        "tags": ["中世纪手稿", "拉丁文", "莱顿大学", "荷兰馆藏", "数字化", "免费"]
+    },
+    {
+        "title": "帝国敕令集 (Regesta Imperii)",
+        "url": "http://www.regesta-imperii.de/",
+        "category": "外文数据库",
+        "desc": "神圣罗马帝国皇帝和教皇的文献、敕令、书信等史料的辑录与索引，提供重要的中世纪欧洲历史研究资料。",
+        "tags": ["中世纪史", "神圣罗马帝国", "教皇文献", "史料辑录", "德国", "免费"]
+    },
+    {
+        "title": "德国历史文献集成数字版 (dMGH - Monumenta Germaniae Historica)",
+        "url": "https://www.dmgh.de/",
+        "category": "外文数据库",
+        "desc": "德国历史文献集成(MGH)的数字版，是研究德国乃至欧洲中世纪历史最重要的原始文献出版项目之一，提供免费在线阅览。",
+        "tags": ["中世纪史", "德国史", "欧洲史", "原始文献", "史料集成", "免费"]
+    },
+    {
+        "title": "中世纪数字资源 (Medieval Digital Resources - MEDEM)",
+        "url": "https://medem.library.utoronto.ca/",
+        "category": "外文数据库",
+        "desc": "由多伦多大学图书馆维护的中世纪数字资源数据库和指南，汇集了大量手稿、文本、图像等各类中世纪研究的在线资源链接。",
+        "tags": ["中世纪", "数字资源", "手稿", "原始文献", "多伦多大学", "资源导航"]
+    },
+    
+    // 数据库集合
+    {
+        title: "北京大学图书馆",
+        url: "https://www.lib.pku.edu.cn/index.htm",
+        category: "数据库集合",
+        desc: "包含多个特色古籍数据库",
+        tags: ["高校资源 需校园网进入"]
+    },
+    {
+        title: "重庆师范大学图书馆",
+        url: "https://wisdom.chaoxing.com/newwisdom/doordatabase/database.html?pageId=989138&wfwfid=24808&sign=85f9bc345ccfbe3bed76c0be053205f1&websiteId=515190",
+        category: "数据库集合",
+        desc: "包含多个特色古籍数据库",
+        tags: ["高校资源 需校园网进入"]
+    },
+    {
+        title: "浙江图书馆古籍库",
+        url: "http://zjisa.zjlib.cn/home/zy_home.jsp",
+        category: "数据库集合",
+        desc: "浙江地区古籍文献数字化成果",
+        tags: ["地方文献"]
+    },
+    {
+        title: "国家图书馆",
+        url: "https://www.nlc.cn/web/index.shtml",
+        category: "数据库集合",
+        desc: "古籍文献数字化成果",
+        tags: ["数据库丰富"]
+    },
+    {
+        title: "广西壮族自治区图书馆",
+        url: "https://res.gxlib.org.cn/ermsClient/browse.do",
+        category: "数据库集合",
+        desc: "知网全库、广西地方志集成数据库，可用支付宝注册",
+        tags: ["注册简单"]
+    },
+    {
+        title: "台湾汉学数位典藏",
+        url: "https://sinology.ascdc.sinica.edu.tw/",
+        category: "数据库集合",
+        desc: "台湾地区古籍数字化资源导览",
+        tags: ["需科学上网"]
+    },
+    {
+        title: "社科院免费资源导航",
+        url: "http://lib.cssn.cn/zy/dzzy/mfxszy/",
+        category: "数据库集合",
+        desc: "数据丰富 可链接其他资源",
+        tags: ["资源整合"]
+    },
+    {
+        title: "互联网档案馆",
+        url: "https://archive.org/",
+        category: "数据库集合",
+        desc: "定制化古籍数据库界面",
+        tags: ["档案丰富", "高级检索"]
+    },
+    {
+        title: "中华古籍智慧服务平台",
+        url: "http://www.nlc.cn/dsb_zyyfw/gj/gjzyk/",
+        category: "数据库集合",
+        desc: "国家图书馆古籍服务",
+        tags: ["古籍检索", "数字化"]
+    },
+    {
+        title: "香港中文大学图书馆",
+        url: "https://www.lib.cuhk.edu.hk/",
+        category: "数据库集合",
+        desc: "香港中文大学学术资源库",
+        tags: ["学术资源", "高校资源"]
+    },
+    {
+        title: "香港科技大学图书馆",
+        url: "https://library.ust.hk/",
+        category: "数据库集合",
+        desc: "香港科技大学数字资源平台",
+        tags: ["科技文献", "高校资源"]
+    },
+    {
+        title: "广州大典",
+        url: "https://gzdd.gzlib.org.cn/website/gzddDatabase",
+        category: "数据库集合",
+        desc: "广州历史文献数字化工程",
+        tags: ["地方文献", "广府文化"]
+    },
+    {
+        title: "深圳市古籍数字图书馆",
+        url: "https://yun.szlib.org.cn/stgj2021/",
+        category: "数据库集合",
+        desc: "深圳古籍保护项目",
+        tags: ["古籍全文", "地方资源"]
+    },
+    {
+        title: "洛阳市图书馆",
+        url: "http://111.7.82.29:8090/index.php",
+        category: "数据库集合",
+        desc: "洛阳地方文献服务平台",
+        tags: ["地方文献", "公共服务"]
+    },
+    {
+        title: "臺灣華文電子書庫",
+        url: "https://taiwanebook.ncl.edu.tw/zh-tw",
+        category: "数据库集合",
+        desc: "台湾地区电子书服务平台",
+        tags: ["繁体资源", "电子书"]
+    },
+    {
+        title: "中华寻根网（国图）",
+        url: "http://ouroots.nlc.cn/genealogyCulture.html",
+        category: "数据库集合",
+        desc: "国家图书馆家谱平台",
+        tags: ["家谱查询", "姓氏文化"]
+    },
+    {
+        title: "国家哲学社会科学文献中心-古籍",
+        url: "https://www.ncpssd.cn/Literature/ancientbooklist?nav=5",
+        category: "数据库集合",
+        desc: "哲学社科领域开放获取库",
+        tags: ["学术论文", "开放获取"]
+    },
+    {
+        title: "云南数字方志馆",
+        url: "https://dfz.yn.gov.cn/record/home",
+        category: "数据库集合",
+        desc: "云南地方志数字化项目",
+        tags: ["地方志", "民族文献"]
+    },
+    {
+        title: "香港大学数字图书馆",
+        url: "https://digitalrepository.lib.hku.hk/",
+        category: "数据库集合",
+        desc: "港大特色数字馆藏",
+        tags: ["科学上网", "高校特藏"]
+    },
+    {
+        title: "江苏高校珍贵古籍",
+        url: "https://jsgxgj.nju.edu.cn/#/resource/home",
+        category: "数据库集合",
+        desc: "江苏高校古籍联合目录",
+        tags: ["本网页自动认证", "古籍普查"]
+    },
+    {
+        title: "抗日战争与近代中日关系文献数据平台",
+        url: "https://www.modernhistory.org.cn/#/",
+        category: "数据库集合",
+        desc: "抗战时期文献数据库",
+        tags: ["历史档案", "专题数据库"]
+    },
+
+//海外汉籍
+    {
+        "title": "哈佛大学图书馆",
+        "url": "https://hollis.harvard.edu/primo-explore/search?vid=HVD2&sortby=rank&lang=en_US",
+        "category": "海外藏珍贵汉籍",
+        "desc": "通过HOLLIS系统提供中文善本、地方志等资源访问，整合哈佛燕京图书馆数字化馆藏",
+        "tags": ["HOLLIS系统", "高校资源", "多语言支持"]
+    },
+    {
+        "title": "哈佛燕京图书馆",
+        "url": "https://gj.library.sh.cn/org/harvard",
+        "category": "海外藏珍贵汉籍",
+        "desc": "数字化4200部53000卷中文善本，含《永乐大典》孤本及少数民族文献",
+        "tags": ["中文善本", "石刻拓片", "地方志"]
+    },
+    {
+        "title": "HathiTrust数字图书馆",
+        "url": "https://www.hathitrust.org/",
+        "category": "海外藏珍贵汉籍",
+        "desc": "非营利性数字图书馆联盟，含两万余册中文图书及公共领域资源下载",
+        "tags": ["全文检索", "高校合作", "OCR支持"]
+    },
+    {
+        "title": "美国国会图书馆中文珍本",
+        "url": "https://www.loc.gov/collections/chinese-rare-books/",
+        "category": "海外藏珍贵汉籍",
+        "desc": "与台湾中央图书馆合作，覆盖地方史、社会研究等前现代中国文献",
+        "tags": ["合作项目", "公共领域", "多学科"]
+    },
+    {
+        "title": "大英图书馆手稿本",
+        "url": "https://www.bl.uk/manuscripts/",
+        "category": "海外藏珍贵汉籍",
+        "desc": "虚拟书项目'Turning the Pages'提供达芬奇手稿等高清数字化资源（部分中文手稿需进一步检索）",
+        "tags": ["虚拟翻阅", "高解析度", "手稿"]
+    },
+    {
+        "title": "FamilySearch中国族谱库",
+        "url": "https://www.familysearch.org/search/collection/1787988",
+        "category": "海外藏珍贵汉籍",
+        "desc": "收录1239-2014年中国族谱1.7万种，含微卷与电子家谱",
+        "tags": ["家谱查询", "免费访问", "摩门教会"]
+    },
+    {
+        "title": "國際敦煌項目 (IDP)",
+        "url": "http://idp.bl.uk/",
+        "category": "海外藏珍贵汉籍",
+        "desc": "整合全球敦煌文献资源，提供多语言检索与高精度图像，由大英图书馆主持",
+        "tags": ["敦煌学", "多机构合作", "文化遗产", "手稿"]
+    },
+    {
+        "title": "奎章閣韓國學研究院 (首尔大学)",
+        "url": "https://kyujanggak.snu.ac.kr/",
+        "category": "海外藏珍贵汉籍",
+        "desc": "首尔大学朝鲜时代汉籍数字化项目，含王室档案与外交文献，部分资源可在线阅览",
+        "tags": ["朝鲜汉籍", "王室档案", "韩中交流", "高校资源"]
+    },
+    {
+        "title": "越南漢喃古籍數位化計劃 (越南国家图书馆)",
+        "url": "http://hannom.nlv.gov.vn/",
+        "category": "海外藏珍贵汉籍",
+        "desc": "越南国家图书馆汉喃文献数字化项目，覆盖碑铭与宗教文本，提供在线阅览",
+        "tags": ["汉喃文字", "东南亚研究", "碑铭数字化", "国家项目"]
+    },
+    {
+        "title": "東洋文庫所藏貴重書數字檔案庫",
+        "url": "http://dsr.nii.ac.jp/toyobunko/",
+        "category": "海外藏珍贵汉籍",
+        "desc": "日本东洋文库收藏的珍贵书籍、手稿和地图的数字档案，包括大量中国古籍，可在线阅览。",
+        "tags": ["日本", "東洋文庫", "古籍影像", "手稿", "免费"]
+    },
+    {
+        "title": "巴伐利亞國家圖書館東亞數字資源庫",
+        "url": "https://ostasien.digitale-sammlungen.de/",
+        "category": "海外藏珍贵汉籍",
+        "desc": "德国巴伐利亚国家图书馆的东亚数字馆藏，提供丰富的亚洲文献，包括大量中文古籍在线阅览。",
+        "tags": ["德国", "巴伐利亚国家图书馆", "东亚文献", "古籍影像", "免费"]
+    },
+    {
+        "title": "早稲田大学図書館古典籍総合データベース",
+        "url": "https://www.wul.waseda.ac.jp/kotenseki/",
+        "category": "海外藏珍贵汉籍",
+        "desc": "日本早稻田大学图书馆藏古典文献综合数据库，提供包括中国古籍在内的珍贵文献影像在线阅览。",
+        "tags": ["日本", "早稻田大学", "古籍影像", "高校资源", "免费"]
+    },
+    {
+        "title": "東京大学東洋文化研究所漢籍善本全文影像資料庫",
+        "url": "http://shanben.ioc.u-tokyo.ac.jp/",
+        "category": "海外藏珍贵汉籍",
+        "desc": "日本东京大学东洋文化研究所收藏的汉籍善本全文影像数据库，尤其以明清戏曲小说古籍为特色，提供在线阅览。",
+        "tags": ["日本", "东京大学", "汉籍影像", "善本", "戏曲小说", "免费"]
+    },
+    {
+        "title": "京都大学附属図書館貴重資料画像データベース",
+        "url": "https://rmda.kulib.kyoto-u.ac.jp/",
+        "category": "海外藏珍贵汉籍",
+        "desc": "日本京都大学图书馆的珍贵资料数字档案，公开了包括大量中文古籍在内的多种历史文献影像，可在线阅览。",
+        "tags": ["日本", "京都大学", "古籍影像", "高校资源", "免费"]
+    },
+    // --- 历史地理学数据 ---
+    {
+        "title": "David Rumsey 地图收藏 (David Rumsey Map Collection)",
+        "url": "https://www.davidrumsey.com/",
+        "category": "历史地理学数据",
+        "desc": "世界著名的私人历史地图收藏，提供超过20万幅高分辨率历史地图在线浏览和下载，年代从16世纪至今，覆盖全球。",
+        "tags": ["历史地图", "在线浏览", "高分辨率", "免费下载", "全球覆盖", "David Rumsey"]
+    },
+    {
+        "title": "在线古地图 (Old Maps Online)",
+        "url": "https://www.oldmapsonline.org/",
+        "category": "历史地理学数据",
+        "desc": "一个历史地图搜索引擎，整合了世界各地图书馆和档案馆的在线历史地图资源，方便用户查找和访问。",
+        "tags": ["历史地图", "搜索引擎", "地图聚合", "全球馆藏", "在线访问"]
+    },
+    {
+        "title": "美国国会图书馆 - 地图收藏 (Library of Congress - Map Collections)",
+        "url": "https://www.loc.gov/maps/",
+        "category": "历史地理学数据",
+        "desc": "美国国会图书馆收藏的地图资源，包含大量数字化历史地图，覆盖美国及世界各地，可在线浏览和部分下载。",
+        "tags": ["历史地图", "美国国会图书馆", "美国地图", "世界地图", "数字化", "在线浏览"]
+    },
+    {
+        "title": "佩里-卡斯塔涅达图书馆地图集 (Perry-Castañeda Library Map Collection)",
+        "url": "https://maps.lib.utexas.edu/",
+        "category": "历史地理学数据",
+        "desc": "德克萨斯大学奥斯汀分校图书馆的在线地图集，提供大量免费的历史和专题地图，包括许多已进入公共领域的扫描地图。",
+        "tags": ["历史地图", "专题地图", "公共领域", "免费下载", "高校资源"]
+    },
+    {
+        "title": "纽约公共图书馆数字馆藏 - 地图 (NYPL Digital Collections - Maps)",
+        "url": "https://digitalcollections.nypl.org/collections/maps",
+        "category": "历史地理学数据",
+        "desc": "纽约公共图书馆的数字馆藏中的地图部分，包含大量高清数字化历史地图，尤其以纽约市及北美地区地图见长。",
+        "tags": ["历史地图", "纽约", "北美地图", "高清数字化", "在线浏览", "公共图书馆"]
+    },
+    {
+        "title": "Gallica 法国国家图书馆 - 地图 (Gallica - Cartes)",
+        "url": "https://gallica.bnf.fr/html/und/cartes/cartes",
+        "category": "历史地理学数据",
+        "desc": "法国国家图书馆 Gallica 数字平台提供的地图集，包含大量法国及世界各地的历史地图、地图集和地球仪。",
+        "tags": ["历史地图", "法国国家图书馆", "法国地图", "欧洲地图", "在线浏览", "Gallica"]
+    },
+    {
+        "title": "自然地球 (Natural Earth)",
+        "url": "https://www.naturalearthdata.com/",
+        "category": "历史地理学数据",
+        "desc": "提供1:10m, 1:50m, 和 1:110m三种比例尺的全球公共领域GIS数据集，包含自然和文化地理要素，适合制图底图。",
+        "tags": ["GIS数据", "底图", "全球数据", "公共领域", "矢量数据", "栅格数据", "免费下载"]
+    },
+    {
+        "title": "开放街道图 (OpenStreetMap - OSM)",
+        "url": "https://www.openstreetmap.org/",
+        "category": "历史地理学数据",
+        "desc": "一个全球性的协作项目，创建可自由编辑的世界地图。其数据可免费下载，并广泛用作GIS底图和各种应用的基础数据。",
+        "tags": ["GIS数据", "底图", "众包地图", "全球数据", "矢量数据", "免费下载", "实时更新"]
+    },
+    {
+        "title": "美国地质调查局国家地图 (USGS National Map)",
+        "url": "https://www.usgs.gov/programs/national-geospatial-program/national-map",
+        "category": "历史地理学数据",
+        "desc": "美国地质调查局提供的美国地理空间信息门户，包含地形图、高程、水系、地名、影像等多种数据和服务，可作为GIS底图。",
+        "tags": ["GIS数据", "美国", "地形图", "影像数据", "USGS", "免费数据", "底图服务"]
+    },
+    {
+        "title": "美国地质调查局地球探索者 (USGS EarthExplorer)",
+        "url": "https://earthexplorer.usgs.gov/",
+        "category": "历史地理学数据",
+        "desc": "美国地质调查局提供的地球观测数据在线门户，可查询和下载Landsat、Sentinel、MODIS等多种卫星影像及其他遥感数据。",
+        "tags": ["卫星影像", "遥感数据", "Landsat", "Sentinel", "MODIS", "USGS", "免费下载", "RS底图"]
+    },
+    {
+        "title": "哥白尼数据空间生态系统 (Copernicus Data Space Ecosystem)",
+        "url": "https://dataspace.copernicus.eu/",
+        "category": "历史地理学数据",
+        "desc": "欧盟哥白尼计划的官方数据访问平台，提供Sentinel系列卫星（雷达与光学）等地球观测数据的免费下载与服务。",
+        "tags": ["卫星影像", "Sentinel", "哥白尼计划", "欧洲航天局", "地球观测", "免费下载", "RS底图"]
+    },
+    {
+        "title": "NASA 地球数据搜索 (NASA Earthdata Search)",
+        "url": "https://search.earthdata.nasa.gov/",
+        "category": "历史地理学数据",
+        "desc": "美国宇航局地球观测数据的搜索引擎，提供NASA旗下多种卫星和航空传感器的科学数据产品，包括影像、气候、海洋等。",
+        "tags": ["卫星影像", "遥感数据", "NASA", "地球科学", "气候数据", "免费下载", "RS底图"]
+    },
+    {
+        "title": "中国历史地理信息系统 (CHGIS - Harvard University)",
+        "url": "https://sites.fas.harvard.edu/~chgis/",
+        "category": "历史地理学数据",
+        "desc": "哈佛大学主持的中国历史地理信息系统项目，提供自公元前221年至1911年间中国历史行政区划的GIS数据集，用于研究历史变迁。",
+        "tags": ["历史GIS", "中国历史", "行政区划", "历史变迁", "哈佛大学", "免费下载"]
+    },
+    {
+        "title": "美国国家历史地理信息系统 (NHGIS - IPUMS)",
+        "url": "https://www.nhgis.org/",
+        "category": "历史地理学数据",
+        "desc": "提供自1790年至今的美国人口普查数据和GIS兼容的地理边界文件，用于研究美国人口、经济和地理的历史变迁。",
+        "tags": ["历史GIS", "美国历史", "人口普查", "地理边界", "历史变迁", "免费下载"]
+    },
+    {
+        "title": "世界历史地名索引 (World Historical Gazetteer - WHG)",
+        "url": "https://whgazetteer.org/",
+        "category": "历史地理学数据",
+        "desc": "一个连接历史地名和相关信息的开放平台，旨在整合不同历史时期的地名数据，支持历史地理和数字人文研究。",
+        "tags": ["历史地名", "地名索引", "关联数据", "数字人文", "历史变迁", "协作平台"]
+    },
+    {
+        "title": "斯坦福数字罗盘 (Stanford Digital Repository - Maps)",
+        "url": "https://searchworks.stanford.edu/collections/public?f%5Bformat_main_ssim%5D%5B%5D=Map",
+        "category": "历史地理学数据",
+        "desc": "斯坦福大学图书馆的数字馆藏，包含大量可公开访问的扫描历史地图和地理空间数据。",
+        "tags": ["历史地图", "地理空间数据", "高校资源", "斯坦福大学", "在线浏览", "免费下载"]
+    },
+    {
+        "title": "联合国地理空间信息 (UN Geospatial)",
+        "url": "https://geospatial.un.org/",
+        "category": "历史地理学数据",
+        "desc": "联合国提供的地理空间信息平台，包含各类全球和区域性地图、地理数据和服务，部分数据可用于GIS分析和底图。",
+        "tags": ["GIS数据", "全球地图", "联合国", "地理数据", "底图", "国际组织"]
+    }
+];
+
+// 卡片模板生成器
+function generateCard(resource) {
+    return `
+    <div class="col-12 col-md-6 col-lg-4">
+        <a href="${resource.url}" class="card resource-card h-100 text-decoration-none">
+            <div class="card-body">
+                <h5 class="card-title">${resource.title}</h5>
+                <p class="card-text text-muted small mt-2">${resource.desc}</p>
+                <div class="mt-3">${
+                    resource.tags.map(tag => 
+                        `<span class="tag-badge">${tag}</span>`
+                    ).join(' ')
+                }</div>
+            </div>
+        </a>
+    </div>
+    `;
+}
+
+// 初始化渲染
+document.addEventListener('DOMContentLoaded', () => {
+    const container = document.getElementById('resourceContainer');
+    container.innerHTML = resources.map(generateCard).join('');
+});
+
+function filterResources(category) {
+    const filtered = category === 'all' 
+        ? resources 
+        : resources.filter(res => res.category === category);
+    
+    const container = document.getElementById('resourceContainer');
+    container.innerHTML = filtered.map(generateCard).join('');
+}
+
+// 分类按钮交互
+document.querySelectorAll('.category-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        // 移除所有按钮的激活状态
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        // 添加当前按钮激活状态
+        this.classList.add('active');
+        
+        // 获取分类参数并过滤
+        const category = this.dataset.category;
+        filterResources(category);
+    });
+});
+
+// 初始化显示全部内容（已有代码保留）
+document.addEventListener('DOMContentLoaded', () => {
+    const container = document.getElementById('resourceContainer');
+    container.innerHTML = resources.map(generateCard).join('');
+});
+// (您现有的 resources 数组和 generateCard 函数保持不变)
+
+document.addEventListener('DOMContentLoaded', () => {
+    const container = document.getElementById('resourceContainer');
+    const searchInput = document.getElementById('searchInput'); // 获取搜索输入框
+
+    // 初始渲染
+    renderResources(resources);
+
+    // 根据分类筛选资源
+    function filterResourcesByCategory(category) {
+        const filtered = category === 'all'
+            ? resources
+            : resources.filter(res => res.category === category);
+        renderResources(filtered);
+    }
+
+    // 将资源渲染到容器
+    function renderResources(resourcesToRender) {
+        container.innerHTML = resourcesToRender.map(generateCard).join('');
+        // 如果需要，可以重新应用卡片进入动画，或调整逻辑
+        // 这种简单的重新渲染不会在现有元素上重新触发 CSS @keyframes cardEnter
+        // 如果它们只是被更新。如果您希望在搜索/筛选时有动画效果，
+        // 可能需要更复杂的方法，比如移除并重新添加元素，或添加动画类。
+        // 为简单起见，此示例侧重于筛选。
+    }
+
+    // 分类按钮交互
+    document.querySelectorAll('.category-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            this.classList.add('active');
+            const category = this.dataset.category;
+            filterResourcesByCategory(category); // 使用分类筛选函数
+            searchInput.value = ''; // 可选：当分类改变时清空搜索框
+        });
+    });
+
+    // 搜索功能
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase().trim();
+        const currentActiveCategoryButton = document.querySelector('.category-btn.active');
+        const currentCategory = currentActiveCategoryButton ? currentActiveCategoryButton.dataset.category : 'all';
+
+        const resourcesToSearch = currentCategory === 'all'
+            ? resources
+            : resources.filter(res => res.category === currentCategory);
+
+        const filteredResources = resourcesToSearch.filter(resource => {
+            const titleMatch = resource.title.toLowerCase().includes(searchTerm);
+            const descMatch = resource.desc.toLowerCase().includes(searchTerm);
+            const tagsMatch = resource.tags.some(tag => tag.toLowerCase().includes(searchTerm));
+            return titleMatch || descMatch || tagsMatch;
+        });
+
+        renderResources(filteredResources);
+    });
+
+    // 初始显示 (已由 DOMContentLoaded 调用 renderResources 处理)
+});
+
+// generateCard 函数 (确保按您已有的方式定义)
+function generateCard(resource) {
+    return `
+    <div class="col-12 col-md-6 col-lg-4">
+        <a href="${resource.url}" class="card resource-card h-100 text-decoration-none" target="_blank" rel="noopener noreferrer"> <div class="card-body">
+                <h5 class="card-title">${resource.title}</h5>
+                <p class="card-text text-muted small mt-2">${resource.desc}</p>
+                <div class="mt-3">${
+                    resource.tags.map(tag =>
+                        `<span class="tag-badge">${tag}</span>`
+                    ).join(' ')
+                }</div>
+            </div>
+        </a>
+    </div>
+    `;
+}
+
+// 注意：为了清晰和高效，我将您的两个 DOMContentLoaded 监听器合并为一个。
+// 我还在您的卡片链接中添加了 target="_blank" rel="noopener noreferrer"，
+// 这对于在新标签页中打开外部链接是一个好习惯。
+</script>
+</script>
+</body>
+</html>
