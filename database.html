@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>亂荷飄零 | 数据库分站</title>
+    
+    <!-- 字体依赖 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --paper-color: #f8f3e9;
+            --ink-color: #3d342e;
+            --ink-light-color: #6a5f58;
+            --accent-color: #8c6840;
+            --seal-color: #a22c29;
+            --border-color: #dcd3c5;
+            --card-bg-color: #fdfcf9;
+        }
+
+        body {
+            background-color: var(--paper-color);
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MCIgaGVpZGH0PSI1MCIgdmlld0JveD0iMCAwIDEwMCAxMDAiPgo8ZmlsdGVyIGlkPSJub2lzZSI+CjxmZVR1cmJ1bGVuY2UgdHlwZT0iZnJhY3RhbE5vaXNlIiBiYXNlRnJlcXVlbmN5PSIwLjciIG51bU9jdGF2ZXM9IjEwIiBzdGl0Y2hUaWxlcz0ic3RpdGNoIiAvPgo8ZmVDb2xvck1hdHJpeCB0eXBlPSJzYXR1cmF0ZSIgdmFsdWVzPSIwIi8+CjwvZmlsdGVyPgo8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZGH0PSIxMDAlIiBmaWx0ZXI9InVybCgjam5vaXNlKSIgb3BhY2l0eT0iMC4wNiIgLz4KPC9zdmc+');
+            color: var(--ink-color);
+            font-family: 'Noto Serif SC', serif;
+        }
+
+        @keyframes slideInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes cardEnter {
+            from { opacity: 0; transform: translateY(30px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .container-wrapper {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .main-title {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 3.5rem;
+            font-weight: 400;
+            color: var(--ink-color);
+            margin-bottom: 2rem;
+            text-align: center;
+            animation: slideInDown 0.6s ease-out forwards;
+        }
+
+        .decorative-border {
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            position: relative; /* For home link positioning */
+        }
+        
+        .home-link {
+            position: absolute;
+            top: 1.5rem;
+            left: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            color: var(--ink-light-color);
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+        .home-link:hover {
+            color: var(--accent-color);
+        }
+        .home-link svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .announcement-block {
+            animation: slideInDown 0.6s 0.1s ease-out forwards;
+            opacity: 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background-color: rgba(140, 104, 64, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin: 0 auto;
+            max-width: 90%;
+        }
+        .announcement-icon {
+            flex-shrink: 0;
+            width: 32px;
+            height: 32px;
+            color: var(--accent-color);
+        }
+        .announcement-content {
+            font-size: 0.9rem;
+            color: var(--ink-light-color);
+            text-align: left;
+        }
+        .announcement-content p {
+            margin: 0;
+            line-height: 1.6;
+        }
+        .announcement-content p:first-child {
+            font-weight: 600;
+            color: var(--ink-color);
+        }
+        
+        .controls-container {
+            margin: 2.5rem 0;
+            padding: 1.5rem;
+            background-color: rgba(140, 104, 64, 0.03);
+            border-radius: 10px;
+            border: 1px solid transparent;
+            animation: slideInDown 0.6s 0.2s ease-out forwards;
+            opacity: 0;
+        }
+
+        .search-box {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto 1.5rem auto;
+            display: block;
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+        }
+        .search-box:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(140, 104, 64, 0.2);
+            outline: none;
+        }
+
+        .category-btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: center;
+        }
+        .category-btn {
+            font-family: 'Noto Serif SC', serif;
+            font-weight: 600;
+            background: transparent;
+            color: var(--ink-light-color);
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
+            padding: 0.5rem 1.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .category-btn:hover {
+            background: rgba(140, 104, 64, 0.1);
+            border-color: var(--accent-color);
+            color: var(--ink-color);
+        }
+        .category-btn.active {
+            background: var(--ink-color);
+            color: var(--paper-color);
+            border-color: var(--ink-color);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .category-btn.active:hover {
+            background: var(--seal-color);
+            border-color: var(--seal-color);
+        }
+        
+        #resourceContainer {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -0.75rem;
+        }
+
+        .resource-card-wrapper {
+            flex-shrink: 0;
+            width: 33.333%;
+            padding: 0.75rem;
+            box-sizing: border-box;
+            opacity: 0;
+            animation: cardEnter 0.5s ease-out forwards;
+            transition: width 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
+        }
+        
+        .resource-card-wrapper.hidden {
+            width: 0;
+            padding: 0;
+            opacity: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .resource-card {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            background: var(--card-bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            text-decoration: none !important;
+            border-top: 3px solid var(--border-color);
+            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+        }
+        .resource-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 16px 32px rgba(61, 52, 46, 0.12);
+            border-color: var(--accent-color);
+            border-top-color: var(--accent-color);
+        }
+        
+        .resource-card .card-body { 
+            padding: 1.5rem; 
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .resource-card .card-title {
+            color: var(--ink-color);
+            font-weight: 600;
+        }
+        .resource-card .card-text {
+            color: var(--ink-light-color);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            flex-grow: 1;
+        }
+        .card-tags {
+            margin-top: 1rem;
+        }
+        .tag-badge {
+            display: inline-block;
+            background: rgba(140, 104, 64, 0.1);
+            color: var(--accent-color);
+            font-size: 0.8rem;
+            padding: 4px 10px;
+            border-radius: 4px;
+            margin: 2px;
+            transition: all 0.2s ease-out;
+        }
+        .resource-card:hover .tag-badge:hover {
+            transform: translateY(-2px);
+            background: var(--accent-color);
+            color: var(--paper-color);
+        }
+        
+        #pet-cat {
+            position: fixed;
+            bottom: 20px;
+            left: 30px;
+            width: 100px;
+            height: 120px;
+            z-index: 1000;
+            cursor: grab;
+            transition: transform 0.3s ease;
+            animation: float-idle 3s infinite ease-in-out;
+        }
+        #pet-cat:active {
+            cursor: grabbing;
+            transform: scale(1.05);
+        }
+        #cat-svg {
+            width: 100%;
+            height: 100%;
+            fill: var(--ink-color);
+            stroke: var(--ink-color);
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        #cat-tail {
+            transform-origin: 20% 80%;
+            animation: wag-tail 4s infinite ease-in-out;
+        }
+        #cat-body.purring { animation: purr-effect 0.5s ease-in-out; }
+        #cat-body.shaking { animation: shake-effect 0.5s ease-in-out; }
+        #cat-body.jumping { animation: jump-effect 0.5s ease-in-out; }
+        
+        @keyframes wag-tail {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(-15deg); }
+        }
+        @keyframes float-idle {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+        @keyframes purr-effect {
+            0%, 100% { transform: translate(0, 0); }
+            20% { transform: translate(-1px, 1px) rotate(-1deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            60% { transform: translate(-1px, 1px) rotate(1deg); }
+            80% { transform: translate(1px, -1px) rotate(-1deg); }
+        }
+        @keyframes shake-effect {
+            0%, 100% { transform: translateX(0) rotate(0); }
+            25% { transform: translateX(-2px) rotate(-2deg); }
+            75% { transform: translateX(2px) rotate(2deg); }
+        }
+        @keyframes jump-effect {
+            0%, 100% { transform: translateY(0) scale(1, 1); }
+            50% { transform: translateY(-10px) scale(0.95, 1.05); }
+        }
+
+        .speech-bubble {
+            position: absolute;
+            bottom: 110px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 14px;
+            color: var(--ink-color);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s, visibility 0.4s;
+            white-space: nowrap;
+        }
+        .speech-bubble.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 6px solid white;
+        }
+
+        @media (max-width: 1200px) {
+            .resource-card-wrapper { width: 50%; }
+        }
+        @media (max-width: 768px) {
+            .container-wrapper { padding: 1rem; }
+            .decorative-border { padding: 1.5rem; }
+            .main-title { font-size: 2.5rem; }
+            .announcement-block { flex-direction: column; text-align: center; }
+            .resource-card-wrapper { width: 100%; }
+            .home-link { top: 1rem; left: 1rem; }
+            #pet-cat {
+                width: 80px;
+                height: 96px;
+                left: 10px;
+                bottom: 10px;
+            }
+            .speech-bubble {
+                bottom: 90px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-wrapper">
+        <h1 class="main-title">亂荷飄零 · 数据库</h1>
+
+        <div class="decorative-border">
+            <a href="./index.html" class="home-link">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                </svg>
+                <span>返回主页</span>
+            </a>
+
+            <div class="announcement-block">
+                <div class="announcement-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+                    </svg>
+                </div>
+                <div class="announcement-content">
+                    <p>站内告示</p>
+                    <p>本站旨在整合常用数据库资源，服务广大文史哲工作者。外文档案与中世纪材料已更新。</p>
+                </div>
+            </div>   
+            
+            <div class="controls-container">
+                <input type="search" id="searchInput" class="search-box" placeholder="在此检索书名、描述或标签...">
+                <div class="category-btn-group">
+                    <button class="btn category-btn active" data-category="all">全部</button>
+                    <button class="btn category-btn" data-category="古籍汉学">古籍汉学</button>
+                    <button class="btn category-btn" data-category="外文文献">外文文献</button>
+                    <button class="btn category-btn" data-category="专题研究">专题研究</button>
+                    <button class="btn category-btn" data-category="综合门户">综合门户</button>
+                </div>
+            </div>
+
+            <div id="resourceContainer"></div>
+        </div>
+    </div>
+
+    <div id="pet-cat">
+        <div class="speech-bubble" id="cat-bubble">喵~</div>
+        <svg id="cat-svg" viewBox="0 0 100 120">
+            <g id="cat-body">
+                <path id="cat-tail" d="M 20 90 Q 50 110 80 80" fill="none"/>
+                <path d="M 80 95 C 95 95 100 70 85 50 C 70 30 40 30 25 50 C 10 70 15 95 30 95 Z" />
+                <circle cx="55" cy="35" r="25" />
+                <path d="M 35 15 L 30 5 L 50 10 Z" />
+                <path d="M 75 15 L 80 5 L 60 10 Z" />
+                <circle cx="48" cy="35" r="2" fill="white"/>
+                <circle cx="62" cy="35" r="2" fill="white"/>
+            </g>
+        </svg>
+    </div>
+    
+<script>
+const resources = [
+    { title: "中国哲学书电子化计划", url: "https://ctext.org/zhs", new_category: "古籍汉学", desc: "收录先秦两汉至明清的传世文献，是研究中国哲学与历史的重要文本数据库，支持全文检索与多版本对照。", tags: ["OCR", "高校资源", "缺字警告"] },
+    { title: "古籍在线古籍数据库", url: "http://gu.gujionline.com/wenxinge/home/doc/index.do", new_category: "古籍汉学", desc: "整合大量影印古籍资源，特别是《四库全书》系列，提供便捷的在线阅读与检索服务，方便学者查阅原始版刻。", tags: ["四库便利", "全文检索", "分部类"] },
+    { title: "识典古籍", url: "https://www.shidianguji.com/", new_category: "古籍汉学", desc: "由字节跳动公益与北大合作开发，提供高质量古籍阅读体验，特点是精准的文图对照功能和流畅的移动端适配。", tags: ["稳定访问", "大厂出品"] },
+    { title: "中华文库", url: "https://www.zhonghuashu.com/", new_category: "古籍汉学", desc: "一个由志愿者参与校对的开放古籍项目，致力于提供准确、免费的中华典籍电子文本。", tags: ["公益项目", "文本校对"] },
+    { title: "国学复兴网", url: "https://www.gxfxwh.com/forum.php", new_category: "古籍汉学", desc: "一个综合性的国学交流平台，包含论坛、博客、古籍等多个板块，是国学爱好者的聚集地。", tags: ["论坛", "爱好者社区"] },
+    { title: "文心阁古籍数据库", url: "https://zj.gujionline.com/", new_category: "古籍汉学", desc: "专业的古籍文献在线检索平台，数据量大，分类细致，是进行古籍考证的有力工具。", tags: ["专业数据库", "文献检索"] },
+    { title: "国学迷", url: "https://www.guoxuemi.com/shumu/", new_category: "古籍汉学", desc: "专注于古籍书目和版本信息的查询，为研究者提供清晰的版本流变脉络，方便溯源考证。", tags: ["书目查询", "版本学"] },
+    { title: "漢川草廬", url: "http://www.xn--5rtnx620bw5s.tw/", new_category: "古籍汉学", desc: "台湾学者建立的个人网站，收录了丰富的经史子集文献，尤其在术数文献方面有独到之处。", tags: ["个人网站", "繁体", "术数"] },
+    { title: "里仁學術資料庫", url: "http://www.liraz.com.tw/", new_category: "古籍汉学", desc: "台湾里仁书局提供的学术数据库，包含部分可免费浏览的期刊与论文，内容偏向文史哲领域。", tags: ["台湾", "学术期刊", "论文"] },
+    { title: "全球汉籍影像开放集成系统", url: "https://guji.wenxianxue.cn/", new_category: "古籍汉学", desc: "一个聚合全球各地汉籍影像资源的平台，方便用户集中查找和浏览分散在不同机构的古籍扫描件。", tags: ["影像聚合", "繁体支持"] },
+    { title: "中华古籍智能化服务平台", url: "https://guji.nlc.cn/", new_category: "古籍汉学", desc: "由中国国家图书馆牵头建设，提供权威的古籍联合目录查询、古籍普查数据及部分数字化资源。", tags: ["国家项目", "联合目录"] },
+    { title: "哈佛大学图书馆", url: "https://hollis.harvard.edu/primo-explore/search?vid=HVD2&sortby=rank&lang=en_US", new_category: "古籍汉学", desc: "通过其HOLLIS系统可检索哈佛馆藏的中文善本、地方志等资源，是海外汉学研究的重镇。", tags: ["HOLLIS", "高校资源", "海外汉籍"] },
+    { title: "哈佛燕京图书馆", url: "https://gj.library.sh.cn/org/harvard", new_category: "古籍汉学", desc: "专门收藏东亚文献的顶级图书馆，其数字化馆藏包含大量中文善本、石刻拓片及珍稀文献。", tags: ["中文善本", "石刻拓片", "海外汉籍"] },
+    { title: "普林斯顿大学东亚图书馆", url: "https://library.princeton.edu/eastasian", new_category: "古籍汉学", desc: "普林斯顿大学东亚图书馆的数字馆藏，包含了大量珍贵的中文古籍、地图和特藏文献。", tags: ["美国", "高校资源", "海外汉籍", "特藏"] },
+    { title: "美国国会图书馆中文珍本", url: "https://www.loc.gov/collections/chinese-rare-books/", new_category: "古籍汉学", desc: "收录了大量中文珍本古籍，内容覆盖地方史、社会研究等多个领域，许多资源可免费在线阅览。", tags: ["合作项目", "公共领域", "海外汉籍"] },
+    { title: "大英图书馆手稿本", url: "https://www.bl.uk/manuscripts/", new_category: "古籍汉学", desc: "世界级手稿收藏中心，藏有包括中文手稿在内的珍贵文献，部分支持高清虚拟翻阅体验。", tags: ["虚拟翻阅", "手稿", "海外汉籍"] },
+    { title: "國際敦煌項目 (IDP)", url: "http://idp.bl.uk/", new_category: "古籍汉学", desc: "由大英图书馆主持，整合全球敦煌文献资源，提供多语言检索与高精度图像，是敦煌学研究的权威平台。", tags: ["敦煌学", "合作项目", "海外汉籍"] },
+    { title: "奎章閣韓國學研究院", url: "https://kyujanggak.snu.ac.kr/", new_category: "古籍汉学", desc: "首尔大学的朝鲜时代汉籍数字化项目，包含王室档案与外交文献，是研究东亚文化交流史的重要资源。", tags: ["朝鲜汉籍", "王室档案", "海外汉籍"] },
+    { title: "越南漢喃古籍數位化計劃", url: "http://hannom.nlv.gov.vn/", new_category: "古籍汉学", desc: "越南国家图书馆的汉喃文献数字化项目，覆盖碑铭与宗教文本，对研究越南历史与汉文化圈有重要价值。", tags: ["汉喃文字", "东南亚", "海外汉籍"] },
+    { title: "東洋文庫所藏貴重書數字檔案庫", url: "http://dsr.nii.ac.jp/toyobunko/", new_category: "古籍汉学", desc: "日本东洋文库是世界五大东方学研究图书馆之一，其数字档案库公开了大量珍稀书籍、手稿和地图。", tags: ["日本", "東洋文庫", "影像", "海外汉籍"] },
+    { title: "巴伐利亞國家圖書館東亞數字資源庫", url: "https://ostasien.digitale-sammlungen.de/", new_category: "古籍汉学", desc: "德国巴伐利亚国家图书馆的东亚数字馆藏，提供丰富的亚洲文献，尤其以17世纪耶稣会士相关文献为特色。", tags: ["德国", "东亚文献", "影像", "海外汉籍"] },
+    { title: "早稲田大学図書館古典籍総合データベース", url: "https://www.wul.waseda.ac.jp/kotenseki/", new_category: "古籍汉学", desc: "日本早稻田大学图书馆藏古典文献综合数据库，收藏有大量中日两国古籍，是研究日本汉学的重要平台。", tags: ["日本", "早稻田大学", "影像", "海外汉籍"] },
+    { title: "東京大学東洋文化研究所漢籍善本全文影像資料庫", url: "http://shanben.ioc.u-tokyo.ac.jp/", new_category: "古籍汉学", desc: "日本东京大学东洋文化研究所收藏的汉籍善本影像库，尤其以明清戏曲小说古籍为特色，品质极高。", tags: ["日本", "东京大学", "善本", "海外汉籍"] },
+    { title: "京都大学附属図書館貴重資料画像データベース", url: "https://rmda.kulib.kyoto-u.ac.jp/", new_category: "古籍汉学", desc: "日本京都大学图书馆的珍贵资料数字档案，公开了包括大量中文古籍在内的多种历史文献影像。", tags: ["日本", "京都大学", "影像", "海外汉籍"] },
+    { title: "欧洲档案门户", url: "https://www.archivesportaleurope.net/", new_category: "外文文献", desc: "一站式访问欧洲各国档案机构的材料，资源极其丰富，是进行欧洲史研究的必备工具，支持多语言检索。", tags: ["欧洲", "档案门户", "多国档案"] },
+    { title: "美国国家档案和记录管理局 (NARA)", url: "https://www.archives.gov/research/catalog", new_category: "外文文献", desc: "美国联邦政府官方档案库，提供大量数字化历史文献、照片、音视频资料的在线目录和访问。", tags: ["美国", "国家档案", "历史文献"] },
+    { title: "英国国家档案馆", url: "https://discovery.nationalarchives.gov.uk/", new_category: "外文文献", desc: "英国政府官方档案馆，其在线平台 Discovery 提供对数百万份档案记录的检索，许多已数字化。", tags: ["英国", "国家档案", "历史记录"] },
+    { title: "法国国家档案馆", url: "https://www.archives-nationales.culture.gouv.fr/accéder-aux-ressources/salle-des-inventaires-virtuelle", new_category: "外文文献", desc: "法国国家级档案保管机构，其“虚拟清单室”提供在线档案目录检索及部分数字化档案的查阅。", tags: ["法国", "国家档案", "在线目录"] },
+    { title: "德国联邦档案馆", url: "https://www.bundesarchiv.de/DE/Navigation/Benutzen/Hinweise-zur-Benutzung/Recherchieren/ARGUS/argus.html", new_category: "外文文献", desc: "德国联邦级档案馆，提供在线档案数据库 (ARGUS) 的检索，部分档案已数字化可在线查阅。", tags: ["德国", "联邦档案", "在线检索"] },
+    { title: "俄罗斯国家电子图书馆 (НЭБ)", url: "https://rusneb.ru/", new_category: "外文文献", desc: "俄罗斯国家级电子图书馆项目，整合了各地图书馆、档案馆的数字化资源，包括部分历史文献和书籍。", tags: ["俄罗斯", "数字图书馆", "俄语资源"] },
+    { title: "美国数字公共图书馆 (DPLA)", url: "https://dp.la/", new_category: "外文文献", desc: "汇集美国各地图书馆、档案馆和博物馆的数字化资源，内容涵盖历史文献、照片、艺术品等。", tags: ["美国", "数字图书馆", "档案聚合"] },
+    { title: "美国历史报纸 (Chronicling America)", url: "https://chroniclingamerica.loc.gov/", new_category: "外文文献", desc: "由美国国会图书馆提供的美国历史报纸数据库，可免费阅览1777年至1963年间出版的报纸。", tags: ["美国", "历史报纸", "国会图书馆"] },
+    { title: "Europeana Newspapers", url: "https://www.europeana.eu/en/search?query=europeana_collectionName%3A%289200356%2A%29", new_category: "外文文献", desc: "汇集了欧洲多国图书馆提供的历史报纸资源，可通过Europeana平台进行检索和阅览。", tags: ["欧洲", "历史报纸", "多国资源"] },
+    { title: "Gallica 法国国家图书馆数字资源库", url: "https://gallica.bnf.fr/html/presse-et-revues/presse-et-revues", new_category: "外文文献", desc: "法国国家图书馆的数字平台，提供大量法国历史报纸和期刊的免费在线阅览，是研究法国史的第一手材料。", tags: ["法国", "历史报纸", "期刊"] },
+    { title: "奥地利历史报纸在线 (ANNO)", url: "https://anno.onb.ac.at/", new_category: "外文文献", desc: "奥地利国家图书馆提供的历史报纸数据库，可免费阅览奥地利及其他欧洲地区的历史报纸。", tags: ["奥地利", "历史报纸", "中欧"] },
+    { title: "威尔士历史报纸在线", url: "https://newspapers.library.wales/", new_category: "外文文献", desc: "威尔士国家图书馆提供的免费历史报纸档案，包含1919年以前的威尔士报纸，是研究地方史的宝贵资源。", tags: ["英国", "威尔士", "历史报纸"] },
+    { title: "The Getty Research Institute", url: "https://www.getty.edu/research/special_collections/digital_collections/", new_category: "外文文献", desc: "盖蒂研究所的数字馆藏，聚焦于艺术史、建筑和视觉文化，提供大量珍本、手稿和照片的数字访问。", tags: ["艺术史", "视觉文化", "手稿", "照片"] },
+    { title: "Literary Print Culture", url: "https://www.literaryprintculture.amdigital.co.uk/", new_category: "外文文献", desc: "收录了16-20世纪的印刷出版史档案，对于研究西方书籍史、阅读史和社会文化变迁非常有价值。", tags: ["英国出版史", "书籍史"] },
+    { title: "澳大利亚数据档案", url: "https://ada.edu.au/", new_category: "外文文献", desc: "一个跨学科的学术数据档案库，提供澳大利亚社会、政治和经济研究的原始数据，需注册访问。", tags: ["国际资源", "学术数据"] },
+    { title: "安娜的档案", url: "https://yue.annas-archive.org/", new_category: "外文文献", desc: "著名的影子图书馆元搜索引擎，整合了Z-Library、Sci-Hub等多个资源，力求“保存人类所有知识”。", tags: ["影子图书馆", "资源整合"] },
+    { title: "z-library", url: "z-lib.su", new_category: "外文文献", desc: "全球知名的影子图书馆，提供大量电子书和学术文章下载，但其可用性与域名时常变动。", tags: ["影子图书馆", "电子书"] },
+    { title: "sci-hub", url: "https://www.sci-hub.st/", new_category: "外文文献", desc: "通过输入论文的DOI号，绕过付费墙直接获取学术期刊文章的网站，在科研界有广泛影响。", tags: ["论文下载", "DOI"] },
+    { title: "中世纪原始文献集", url: "https://sourcebooks.fordham.edu/medieval/medievalsources.asp", new_category: "外文文献", desc: "福特汉姆大学提供的中世纪原始文献集，包含大量翻译成英文的文本，涵盖法律、宗教、文学等多个方面。", tags: ["中世纪", "原始文献", "史料"] },
+    { title: "数字手稿室 (Digital Scriptorium)", url: "https://digital-scriptorium.org/", new_category: "外文文献", desc: "一个合作项目，提供中世纪和文艺复兴时期手稿的图像数据库，汇集了美国多个图书馆的珍贵藏品。", tags: ["中世纪手稿", "图像数据库", "美国馆藏"] },
+    { title: "德国中世纪手稿门户", url: "http://www.manuscripta-mediaevalia.de/", new_category: "外文文献", desc: "德国中世纪手稿的中央门户，提供对德国及部分其他欧洲国家图书馆所藏中世纪手稿的目录信息和数字化副本。", tags: ["中世纪手稿", "德国", "欧洲手稿"] },
+    { title: "帕克图书馆在线", url: "https://parker.stanford.edu/parker/", new_category: "外文文献", desc: "剑桥大学基督圣体学院帕克图书馆藏中世纪手稿的数字版本，由斯坦福大学提供技术支持，包含大量珍贵手稿。", tags: ["中世纪手稿", "帕克图书馆", "英国手稿"] },
+    { title: "瑞士虚拟手稿图书馆 (e-codices)", url: "https://www.e-codices.unifr.ch/en/", new_category: "外文文献", desc: "瑞士虚拟手稿图书馆，提供对瑞士各图书馆收藏的中世纪和部分早期现代手稿的免费数字访问。", tags: ["中世纪手稿", "瑞士", "虚拟图书馆"] },
+    { title: "莱顿大学沃西乌斯拉丁文手稿在线", url: "https://digitalcollections.universiteitleiden.nl/collections/codices-vossiani-latini-online", new_category: "外文文献", desc: "荷兰莱顿大学图书馆藏沃西乌斯拉丁文手稿的在线数字版，包含大量中世纪时期的拉丁文抄本。", tags: ["中世纪手稿", "拉丁文", "荷兰馆藏"] },
+    { title: "帝国敕令集 (Regesta Imperii)", url: "http://www.regesta-imperii.de/", new_category: "外文文献", desc: "神圣罗马帝国皇帝和教皇的文献、敕令、书信等史料的辑录与索引，是研究中世纪欧洲政治史的核心资料。", tags: ["中世纪史", "神圣罗马帝国", "教皇文献"] },
+    { title: "德国历史文献集成数字版 (dMGH)", url: "https://www.dmgh.de/", new_category: "外文文献", desc: "德国历史文献集成(MGH)的数字版，是研究德国乃至欧洲中世纪历史最重要的原始文献出版项目之一。", tags: ["中世纪史", "德国史", "史料集成"] },
+    { title: "中世纪数字资源 (MEDEM)", url: "https://medem.library.utoronto.ca/", new_category: "外文文献", desc: "由多伦多大学图书馆维护的中世纪数字资源数据库和指南，汇集了大量手稿、文本、图像等各类研究的在线资源。", tags: ["中世纪", "数字资源", "资源导航"] },
+    { title: "中华电子佛典协会 (CBETA)", url: "https://www.cbeta.org/", new_category: "专题研究", desc: "收录了最完整的大藏经系列电子文本，提供多种检索方式和阅读格式，是佛教研究最权威、最基础的文本数据库。", tags: ["佛教", "大藏经", "文本数据库", "宗教研究"] },
+    { title: "David Rumsey 地图收藏", url: "https://www.davidrumsey.com/", new_category: "专题研究", desc: "世界著名的私人历史地图收藏，提供超过20万幅高分辨率历史地图在线浏览和下载，是历史地理研究的宝库。", tags: ["历史地图", "高分辨率", "全球覆盖"] },
+    { title: "在线古地图 (Old Maps Online)", url: "https://www.oldmapsonline.org/", new_category: "专题研究", desc: "一个历史地图搜索引擎，整合了世界各地图书馆和档案馆的在线历史地图资源，方便用户查找和访问。", tags: ["历史地图", "搜索引擎", "地图聚合"] },
+    { title: "自然地球 (Natural Earth)", url: "https://www.naturalearthdata.com/", new_category: "专题研究", desc: "提供多种比例尺的全球公共领域GIS数据集，包含自然和文化地理要素，是制作各种专题地图的理想底图数据。", tags: ["GIS数据", "底图", "公共领域"] },
+    { title: "中国历史地理信息系统 (CHGIS)", url: "https://sites.fas.harvard.edu/~chgis/", new_category: "专题研究", desc: "哈佛大学主持的中国历史地理信息系统项目，提供自公元前221年至1911年间中国历史行政区划的GIS数据集。", tags: ["历史GIS", "中国历史", "哈佛大学"] },
+    { title: "美国国家历史地理信息系统 (NHGIS)", url: "https://www.nhgis.org/", new_category: "专题研究", desc: "提供自1790年至今的美国人口普查数据和GIS兼容的地理边界文件，用于研究美国人口、经济和地理的历史变迁。", tags: ["历史GIS", "美国历史", "人口普查"] },
+    { title: "世界历史地名索引 (WHG)", url: "https://whgazetteer.org/", new_category: "专题研究", desc: "一个连接历史地名和相关信息的开放平台，旨在整合不同历史时期的地名数据，支持历史地理和数字人文研究。", tags: ["历史地名", "数字人文", "协作平台"] },
+    { title: "抗日战争与近代中日关系文献数据平台", url: "https://www.modernhistory.org.cn/#/", new_category: "专题研究", desc: "由社科院近代史所建立，收录了大量关于抗日战争和近代中日关系的档案、报刊、图书等文献资料。", tags: ["历史档案", "专题数据库", "近代史"] },
+    { title: "FamilySearch中国族谱库", url: "https://www.familysearch.org/search/collection/1787988", new_category: "专题研究", desc: "由耶稣基督后期圣徒教会运营，收录了海量的中国族谱，是进行家族史和地方社会史研究的重要资源。", tags: ["家谱查询", "免费访问", "摩门教会"] },
+    { title: "上海图书馆藏家谱", url: "https://search.library.sh.cn/jiapu", new_category: "专题研究", desc: "上海图书馆是海内外收藏中国家谱原件最多的机构，其线上平台提供了丰富的家谱目录和部分数字化影像。", tags: ["家谱查询", "上海图书馆", "地方史"] },
+    { title: "中华寻根网（国图）", url: "http://ouroots.nlc.cn/genealogyCulture.html", new_category: "专题研究", desc: "由国家图书馆建立的家谱文献服务平台，提供馆藏家谱目录检索和部分数字化家谱的在线阅览。", tags: ["家谱查询", "姓氏文化", "国图"] },
+    { title: "世界数字图书馆 (WDL)", url: "https://www.wdl.org/", new_category: "综合门户", desc: "由联合国教科文组织和美国国会图书馆共同发起，汇集了世界各地文化机构的珍贵文献，包括书籍、手稿、地图等。", tags: ["全球档案", "联合国", "文化遗产", "多语言"] },
+    { title: "国家图书馆", url: "https://www.nlc.cn/web/index.shtml", new_category: "综合门户", desc: "中国国家图书馆总门户，是访问国图海量数字资源、查询馆藏目录、了解展览与服务的总入口。", tags: ["国图", "总门户"] },
+    { title: "日本国立国会图书馆数字馆藏", url: "https://dl.ndl.go.jp/", new_category: "综合门户", desc: "日本国立国会图书馆的数字馆藏，收录了自明治时期以来的大量书籍、期刊和文献，是研究日本近代史的重要资源。", tags: ["日本", "国家图书馆", "近代史", "日文资源"] },
+    { title: "Trove (澳大利亚国家图书馆)", url: "https://trove.nla.gov.au/", new_category: "综合门户", desc: "澳大利亚国家图书馆的资源整合平台，可以一站式搜索澳大利亚的图书、图片、报纸、地图、档案等。", tags: ["澳大利亚", "国家图书馆", "资源整合", "报纸"] },
+    { title: "北京大学图书馆", url: "https://www.lib.pku.edu.cn/index.htm", new_category: "综合门户", desc: "中国顶尖高校图书馆之一，其网站提供多个特色古籍和学术数据库的访问入口（部分需校园网）。", tags: ["高校资源", "需校园网"] },
+    { title: "重庆师范大学图书馆", url: "https://wisdom.chaoxing.com/newwisdom/doordatabase/database.html?pageId=989138&wfwfid=24808&sign=85f9bc345ccfbe3bed76c0be053205f1&websiteId=515190", new_category: "综合门户", desc: "地方高校图书馆的优秀代表，购买了大量学术数据库，对校外用户也提供了一定的访问便利。", tags: ["高校资源", "数据库丰富"] },
+    { title: "浙江图书馆古籍库", url: "http://zjisa.zjlib.cn/home/zy_home.jsp", new_category: "综合门户", desc: "集中展示了浙江省在古籍保护与数字化方面的成果，是研究浙江地方文献的重要平台。", tags: ["地方文献", "浙江"] },
+    { title: "学衡数据", url: "http://www.xueheng.net/", new_category: "综合门户", desc: "一个专业的学术资源发现平台，提供古籍、期刊、论文等多种资源的整合检索服务，目录信息非常丰富。", tags: ["整合检索", "目录"] },
+    { title: "广西壮族自治区图书馆", url: "https://res.gxlib.org.cn/ermsClient/browse.do", new_category: "综合门户", desc: "对公众开放注册，可用支付宝快速登录，免费使用知网、广西地方志等多种珍贵数据库。", tags: ["注册简单", "地方志"] },
+    { title: "台湾汉学数位典藏", url: "https://sinology.ascdc.sinica.edu.tw/", new_category: "综合门户", desc: "由台湾“中研院”建立，是台湾地区汉学研究数字化资源的总导航入口，内容质量极高。", tags: ["台湾", "需科学上网"] },
+    { title: "社科院免费资源导航", url: "http://lib.cssn.cn/zy/dzzy/mfxszy/", new_category: "综合门户", desc: "由中国社会科学院图书馆整理，汇集了国内外可免费访问的高质量学术资源，是学者寻找开放资源的得力助手。", tags: ["社科院", "资源整合"] },
+    { title: "互联网档案馆 (Internet Archive)", url: "https://archive.org/", new_category: "综合门户", desc: "全球性的非营利数字图书馆，致力于永久保存人类的数字文化遗产，馆藏极为丰富，包含大量古籍影像。", tags: ["全球档案", "高级检索"] },
+    { title: "香港中文大学图书馆", url: "https://www.lib.cuhk.edu.hk/", new_category: "综合门户", desc: "香港地区重要的学术资源中心，其数字馆藏和数据库对研究中国及世界历史文化有重要价值。", tags: ["香港", "高校资源"] },
+    { title: "广州大典", url: "https://gzdd.gzlib.org.cn/website/gzddDatabase", new_category: "综合门户", desc: "一项大型的广州历史文献数字化工程，收录了与广州相关的各类文献，是研究广府文化的核心资源库。", tags: ["地方文献", "广府文化"] },
+    { title: "深圳市古籍数字图书馆", url: "https://yun.szlib.org.cn/stgj2021/", new_category: "综合门户", desc: "深圳图书馆的古籍数字化项目，提供了馆藏古籍的全文影像和检索服务，对公众免费开放。", tags: ["古籍全文", "地方资源"] },
+    { title: "臺灣華文電子書庫", url: "https://taiwanebook.ncl.edu.tw/zh-tw", new_category: "综合门户", desc: "由台湾“国家图书馆”建立，收录了大量台湾出版的华文电子书，部分资源可免费在线阅读。", tags: ["台湾", "电子书"] },
+    { title: "国家哲学社会科学文献中心", url: "https://www.ncpssd.cn/Literature/ancientbooklist?nav=5", new_category: "综合门户", desc: "国家级的哲学社科领域开放获取平台，收录了大量学术论文、期刊，并设有古籍专区。", tags: ["社科", "开放获取"] },
+    { title: "云南数字方志馆", url: "https://dfz.yn.gov.cn/record/home", new_category: "综合门户", desc: "云南省地方志办公室主办，提供云南省各级地方志的数字化阅读，是研究云南历史、地理、民族文化的重要窗口。", tags: ["地方志", "民族文献"] },
+    { title: "江苏高校珍贵古籍", url: "https://jsgxgj.nju.edu.cn/#/resource/home", new_category: "综合门户", desc: "整合了江苏省内多所高校的珍贵古籍资源，建立了联合目录和影像数据库，部分资源可免登录阅览。", tags: ["高校联盟", "古籍普查"] }
+];
+
+document.addEventListener('DOMContentLoaded', () => {
+    const container = document.getElementById('resourceContainer');
+    const searchInput = document.getElementById('searchInput');
+    const categoryButtons = document.querySelectorAll('.category-btn');
+
+    const cardHTML = resources.map(resource => {
+        return `
+            <div class="resource-card-wrapper" data-category="${resource.new_category}" data-search-terms="${resource.title.toLowerCase()} ${resource.desc.toLowerCase()} ${resource.tags.join(' ').toLowerCase()}">
+                <a href="${resource.url}" class="resource-card" target="_blank" rel="noopener noreferrer">
+                    <div class="card-body">
+                        <h5 class="card-title">${resource.title}</h5>
+                        <p class="card-text small mt-2">${resource.desc}</p>
+                        <div class="card-tags">${
+                            resource.tags.map(tag => `<span class="tag-badge">${tag}</span>`).join(' ')
+                        }</div>
+                    </div>
+                </a>
+            </div>
+        `;
+    }).join('');
+    container.innerHTML = cardHTML;
+    
+    const allCards = Array.from(document.querySelectorAll('.resource-card-wrapper'));
+
+    allCards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.05}s`;
+    });
+
+    let currentCategory = 'all';
+    let currentSearchTerm = '';
+
+    function filterAndSearch() {
+        allCards.forEach(card => {
+            const cardCategory = card.dataset.category;
+            const cardSearchData = card.dataset.searchTerms;
+
+            const categoryMatch = (currentCategory === 'all' || cardCategory === currentCategory);
+            const searchMatch = (currentSearchTerm === '' || cardSearchData.includes(currentSearchTerm));
+
+            if (categoryMatch && searchMatch) {
+                card.classList.remove('hidden');
+            } else {
+                card.classList.add('hidden');
+            }
+        });
+    }
+    
+    categoryButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            categoryButtons.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            
+            currentCategory = this.getAttribute('data-category');
+            filterAndSearch();
+        });
+    });
+
+    function debounce(fn, delay) {
+        let timeoutID;
+        return function(...args) {
+            clearTimeout(timeoutID);
+            timeoutID = setTimeout(() => {
+                fn(...args);
+            }, delay);
+        };
+    }
+
+    searchInput.addEventListener('input', debounce(() => {
+        currentSearchTerm = searchInput.value.toLowerCase().trim();
+        filterAndSearch();
+    }, 250));
+
+    // Handle search query from homepage
+    function handleInitialSearch() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const query = urlParams.get('q');
+        if (query) {
+            const decodedQuery = decodeURIComponent(query);
+            searchInput.value = decodedQuery;
+            currentSearchTerm = decodedQuery.toLowerCase().trim();
+            filterAndSearch();
+        }
+    }
+    handleInitialSearch();
+
+    const pet = document.getElementById('pet-cat');
+    const bubble = document.getElementById('cat-bubble');
+    const catBody = document.getElementById('cat-body');
+    
+    const randomMessages = [
+        "找書累了嗎？摸摸我吧！", "這個數據庫不錯哦！", "喵~", "今天也要努力讀書！",
+        "發現什麼寶藏文獻了嗎？", "讓我陪你一起看書吧。", "读万卷书，行万里路。",
+        "书中自有黄金屋，喵~", "看看海外汉籍，有新发现哦！", "今天想研究哪个朝代？",
+        "做学问，要有板凳甘坐十年冷的精神。", "别忘了喝口茶，休息一下眼睛。",
+        "本喵发现了一个有趣的专题库！", "在知识的海洋里遨游，真好呀。",
+        "有什么需要我帮忙找的吗？（虽然我只会卖萌）", "点击分类，可以快速筛选哦。",
+        "夜深了，注意休息呀，学者大人。", "看到那么多书，本喵的学问都增长了。"
+    ];
+    
+    const clickMessages = [
+        "呼噜噜... 好舒服...", "喵~ 谢谢你的抚摸！", "有我在，读书不孤单！",
+        "嘿嘿，好痒~", "最喜欢被你摸头啦！", "找到想要的文献了吗？"
+    ];
+    const clickAnimations = ['purring', 'shaking', 'jumping'];
+
+    let isDragging = false;
+    let wasDragged = false;
+    let offsetX, offsetY;
+
+    const startDrag = (e) => {
+        isDragging = true;
+        wasDragged = false;
+        pet.style.transition = 'none';
+        const event = e.type.includes('touch') ? e.touches[0] : e;
+        offsetX = event.clientX - pet.offsetLeft;
+        offsetY = event.clientY - pet.offsetTop;
+        document.addEventListener('mousemove', onDrag);
+        document.addEventListener('mouseup', endDrag);
+        document.addEventListener('touchmove', onDrag);
+        document.addEventListener('touchend', endDrag);
+    };
+
+    const onDrag = (e) => {
+        if (!isDragging) return;
+        wasDragged = true;
+        e.preventDefault();
+        const event = e.type.includes('touch') ? e.touches[0] : e;
+        let newX = event.clientX - offsetX;
+        let newY = event.clientY - offsetY;
+        
+        const maxX = window.innerWidth - pet.offsetWidth;
+        const maxY = window.innerHeight - pet.offsetHeight;
+        newX = Math.max(0, Math.min(newX, maxX));
+        newY = Math.max(0, Math.min(newY, maxY));
+
+        pet.style.left = `${newX}px`;
+        pet.style.top = `${newY}px`;
+    };
+
+    const endDrag = () => {
+        isDragging = false;
+        pet.style.transition = 'transform 0.3s ease';
+        document.removeEventListener('mousemove', onDrag);
+        document.removeEventListener('mouseup', endDrag);
+        document.removeEventListener('touchmove', onDrag);
+        document.removeEventListener('touchend', endDrag);
+    };
+    
+    pet.addEventListener('click', () => {
+        if (wasDragged) return;
+
+        const randomAnimation = clickAnimations[Math.floor(Math.random() * clickAnimations.length)];
+        catBody.classList.add(randomAnimation);
+        setTimeout(() => {
+            catBody.classList.remove(randomAnimation);
+        }, 500);
+
+        const randomMessage = clickMessages[Math.floor(Math.random() * clickMessages.length)];
+        showSpecificMessage(randomMessage);
+    });
+
+    pet.addEventListener('mousedown', startDrag);
+    pet.addEventListener('touchstart', startDrag);
+
+    let bubbleTimeout;
+    function showSpecificMessage(message) {
+        clearTimeout(bubbleTimeout);
+        bubble.classList.remove('show');
+
+        setTimeout(() => {
+            bubble.textContent = message;
+            bubble.classList.add('show');
+            
+            bubbleTimeout = setTimeout(() => {
+                bubble.classList.remove('show');
+            }, 2000);
+        }, 100);
+    }
+
+    function showRandomMessage() {
+        if (bubble.classList.contains('show')) return;
+        const randomIndex = Math.floor(Math.random() * randomMessages.length);
+        showSpecificMessage(randomMessages[randomIndex]);
+    }
+
+    setInterval(showRandomMessage, Math.random() * 10000 + 15000);
+});
+</script>
+</body>
+</html>
